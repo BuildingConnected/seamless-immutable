@@ -116,9 +116,9 @@
       var thisHead = this[head];
       var newValue;
 
-      if (typeof(thisHead) === "object" && thisHead !== null && typeof(thisHead.setIn) === "function") {
+      if (typeof(thisHead) === "object" && thisHead !== null && typeof(thisHead._setIn) === "function") {
         // Might (validly) be object or array
-        newValue = thisHead.setIn(tail, value);
+        newValue = thisHead._setIn(tail, value);
       } else {
         newValue = arraySetIn.call(immutableEmptyArray, tail, value);
       }
@@ -143,11 +143,11 @@
       }
     }
 
-    addPropertyTo(array, "flatMap",  flatMap);
-    addPropertyTo(array, "asObject", asObject);
-    addPropertyTo(array, "asMutable", asMutableArray);
-    addPropertyTo(array, "set", arraySet);
-    addPropertyTo(array, "setIn", arraySetIn);
+    addPropertyTo(array, "_flatMap",  flatMap);
+    addPropertyTo(array, "_asObject", asObject);
+    addPropertyTo(array, "_asMutable", asMutableArray);
+    addPropertyTo(array, "_set", arraySet);
+    addPropertyTo(array, "_setIn", arraySetIn);
 
     for(var i = 0, length = array.length; i < length; i++) {
       array[i] = Immutable(array[i]);
@@ -157,7 +157,7 @@
   }
 
   function makeImmutableDate(date) {
-    addPropertyTo(date, "asMutable", asMutableDate);
+    addPropertyTo(date, "_asMutable", asMutableDate);
 
     return makeImmutable(date, mutatingDateMethods);
   }
@@ -174,7 +174,7 @@
    * @param {function} iterator - The iterator function that will be invoked on each element in the array. It will receive three arguments: the current value, the current index, and the current object.
    */
   function flatMap(iterator) {
-    // Calling .flatMap() with no arguments is a no-op. Don't bother cloning.
+    // Calling ._flatMap() with no arguments is a no-op. Don't bother cloning.
     if (arguments.length === 0) {
       return this;
     }
@@ -204,7 +204,7 @@
    * @param {array} keysToRemove - A list of strings representing the keys to exclude in the return value. Instead of providing a single array, this method can also be called by passing multiple strings as separate arguments.
    */
   function without(keysToRemove) {
-    // Calling .without() with no arguments is a no-op. Don't bother cloning.
+    // Calling ._without() with no arguments is a no-op. Don't bother cloning.
     if (arguments.length === 0) {
       return this;
     }
@@ -217,10 +217,10 @@
       // If we weren't given an array, use the arguments list.
       var keysToRemoveArray = (keysToRemove instanceof Array) ?
          keysToRemove : Array.prototype.slice.call(arguments);
-      remove = function(val, key) { return keysToRemoveArray.indexOf(key) >= 0; };
+      remove = function(val, key) { return keysToRemoveArray.indexOf(key) >= 0; }
     }
 
-    var result = this.instantiateEmptyObject();
+    var result = this._instantiateEmptyObject();
 
     for (var key in this) {
       if (this.hasOwnProperty(key) && ! remove(this[key], key)) {
@@ -229,7 +229,7 @@
     }
 
     return makeImmutableObject(result,
-      {instantiateEmptyObject: this.instantiateEmptyObject});
+      {_instantiateEmptyObject: this._instantiateEmptyObject});
   }
 
   function asMutableArray(opts) {
@@ -279,7 +279,7 @@
 
   function asDeepMutable(obj) {
     if(!obj || !obj.hasOwnProperty(immutabilityTag) || obj instanceof Date) { return obj; }
-    return obj.asMutable({deep: true});
+    return obj._asMutable({deep: true});
   }
 
   function quickCopy(src, dest) {
@@ -302,7 +302,7 @@
    *                          that takes a property from both objects. If anything is returned it overrides the normal merge behaviour.
    */
   function merge(other, config) {
-    // Calling .merge() with no arguments is a no-op. Don't bother cloning.
+    // Calling ._merge() with no arguments is a no-op. Don't bother cloning.
     if (arguments.length === 0) {
       return this;
     }
@@ -336,7 +336,7 @@
         if (mergerResult) {
           newValue = mergerResult;
         } else if (deep && isMergableObject(currentValue) && isMergableObject(immutableValue)) {
-          newValue = currentValue.merge(immutableValue, config);
+          newValue = currentValue._merge(immutableValue, config);
         } else {
           newValue = immutableValue;
         }
@@ -346,7 +346,7 @@
             !currentObj.hasOwnProperty(key)) {
           if (result === undefined) {
             // Make a shallow clone of the current object.
-            result = quickCopy(currentObj, currentObj.instantiateEmptyObject());
+            result = quickCopy(currentObj, currentObj._instantiateEmptyObject());
           }
 
           result[key] = newValue;
@@ -381,7 +381,7 @@
       return this;
     } else {
       return makeImmutableObject(result,
-        {instantiateEmptyObject: this.instantiateEmptyObject});
+        {_instantiateEmptyObject: this._instantiateEmptyObject});
     }
   }
 
@@ -397,9 +397,9 @@
     var newValue;
     var thisHead = this[head];
 
-    if (this.hasOwnProperty(head) && typeof(thisHead) === "object" && thisHead !== null && typeof(thisHead.setIn) === "function") {
+    if (this.hasOwnProperty(head) && typeof(thisHead) === "object" && thisHead !== null && typeof(thisHead._setIn) === "function") {
       // Might (validly) be object or array
-      newValue = thisHead.setIn(tail, value);
+      newValue = thisHead._setIn(tail, value);
     } else {
       newValue = objectSetIn.call(immutableEmptyObject, tail, value);
     }
@@ -408,7 +408,7 @@
       return this;
     }
 
-    var mutable = quickCopy(this, this.instantiateEmptyObject());
+    var mutable = quickCopy(this, this._instantiateEmptyObject());
     mutable[head] = newValue;
     return makeImmutableObject(mutable, this);
   }
@@ -418,13 +418,13 @@
       return this;
     }
 
-    var mutable = quickCopy(this, this.instantiateEmptyObject());
+    var mutable = quickCopy(this, this._instantiateEmptyObject());
     mutable[property] = Immutable(value);
     return makeImmutableObject(mutable, this);
   }
 
   function asMutableObject(opts) {
-    var result = this.instantiateEmptyObject(), key;
+    var result = this._instantiateEmptyObject(), key;
 
     if(opts && opts.deep) {
       for (key in this) {
@@ -451,15 +451,15 @@
   // Finalizes an object with immutable methods, freezes it, and returns it.
   function makeImmutableObject(obj, options) {
     var instantiateEmptyObject =
-      (options && options.instantiateEmptyObject) ?
-        options.instantiateEmptyObject : instantiatePlainObject;
+      (options && options._instantiateEmptyObject) ?
+        options._instantiateEmptyObject : instantiatePlainObject;
 
-    addPropertyTo(obj, "merge", merge);
-    addPropertyTo(obj, "without", without);
-    addPropertyTo(obj, "asMutable", asMutableObject);
-    addPropertyTo(obj, "instantiateEmptyObject", instantiateEmptyObject);
-    addPropertyTo(obj, "set", objectSet);
-    addPropertyTo(obj, "setIn", objectSetIn);
+    addPropertyTo(obj, "_merge", merge);
+    addPropertyTo(obj, "_without", without);
+    addPropertyTo(obj, "_asMutable", asMutableObject);
+    addPropertyTo(obj, "_instantiateEmptyObject", instantiateEmptyObject);
+    addPropertyTo(obj, "_set", objectSet);
+    addPropertyTo(obj, "_setIn", objectSetIn);
 
     return makeImmutable(obj, mutatingObjectMethods);
   }
@@ -486,7 +486,7 @@
       }
 
       return makeImmutableObject(clone,
-        {instantiateEmptyObject: instantiateEmptyObject});
+        {_instantiateEmptyObject: instantiateEmptyObject});
     }
   }
 

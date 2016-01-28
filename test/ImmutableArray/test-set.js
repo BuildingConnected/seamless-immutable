@@ -10,7 +10,7 @@ module.exports = function(config) {
   var check     = TestUtils.check;
 
   function getPathComponent() {
-    // It's very convenient to use lodash.set, but it has funky behaviour
+    // It's very convenient to use lodash._set, but it has funky behaviour
     // with numeric keys.
     var s = JSC.string()().replace(/[^\w]/g, '_');
     return /^\d+$/.test(s) ? s + 'a' : s;
@@ -20,11 +20,11 @@ module.exports = function(config) {
     it("sets an array element", function () {
       check(100, [ JSC.array([TestUtils.TraversableObjectSpecifier, JSC.any()]) ], function(array) {
         var immutable = Immutable(array);
-        var mutable = immutable.asMutable();
+        var mutable = immutable._asMutable();
         var index = JSC.integer(0, array.length);
         var newValue = JSC.any();
 
-        immutable = immutable.set(index, newValue);
+        immutable = immutable._set(index, newValue);
         mutable[index] = newValue;
 
         TestUtils.assertJsonEqual(immutable, mutable);
@@ -46,15 +46,15 @@ module.exports = function(config) {
           return '[\n\t>'+_.map(arr, util.inspect).join('\n\t>')+'\n]';
         }
 
-        var mutable = immutable.asMutable();
+        var mutable = immutable._asMutable();
         TestUtils.assertJsonEqual(immutable, mutable);
         if (Immutable.isImmutable(mutable[idx])) {
-          mutable[idx] = mutable[idx].asMutable();
+          mutable[idx] = mutable[idx]._asMutable();
         }
         mutable[idx][key] = value;
 
         TestUtils.assertJsonEqual(
-          immutable.setIn([idx, key], value),
+          immutable._setIn([idx, key], value),
           mutable
         );
       });

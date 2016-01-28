@@ -36,7 +36,7 @@ module.exports = function(config) {
           function runMerge(others) {
             others = others || list;
 
-            return immutable.merge(others, config);
+            return immutable._merge(others, config);
           }
 
           callback(immutable, list, runMerge);
@@ -114,7 +114,7 @@ module.exports = function(config) {
       it("does not reproduce #70", function() {
         var c = Immutable({a: {b: 1}});
 
-        assert.strictEqual(c, c.merge({a: {b: 1}}, {deep: true}));
+        assert.strictEqual(c, c._merge({a: {b: 1}}, {deep: true}));
       });
 
       it("does nothing when merging an identical object", function() {
@@ -123,7 +123,7 @@ module.exports = function(config) {
             var identicalImmutable = Immutable(mutable);
 
             assert.strictEqual(identicalImmutable,
-              identicalImmutable.merge(mutable, {deep: true}));
+              identicalImmutable._merge(mutable, {deep: true}));
           });
         });
       });
@@ -162,14 +162,14 @@ module.exports = function(config) {
     // Sanity check to make sure our QuickCheck logic isn't off the rails.
     it("passes a basic sanity check on canned input", function() {
       var expected = Immutable({all: "your base", are: {belong: "to us"}});
-      var actual   = Immutable({all: "your base", are: {belong: "to them"}}).merge({are: {belong: "to us"}})
+      var actual   = Immutable({all: "your base", are: {belong: "to them"}})._merge({are: {belong: "to us"}})
 
       TestUtils.assertJsonEqual(actual, expected);
     });
 
     it("does nothing when passed a canned merge that will result in no changes", function() {
       var expected = Immutable({all: "your base", are: {belong: "to us"}});
-      var actual   = expected.merge({all: "your base"}); // Should result in a no-op.
+      var actual   = expected._merge({all: "your base"}); // Should result in a no-op.
 
       assert.strictEqual(expected, actual, JSON.stringify(expected) + " did not equal " + JSON.stringify(actual));
     });
@@ -177,7 +177,7 @@ module.exports = function(config) {
     it("is a no-op when passed nothing", function() {
       check(100, [TestUtils.ComplexObjectSpecifier()], function(obj) {
         var expected = Immutable(obj);
-        var actual   = expected.merge();
+        var actual   = expected._merge();
 
         TestUtils.assertJsonEqual(actual, expected);
       });
@@ -191,7 +191,7 @@ module.exports = function(config) {
         var immutable = Immutable(obj);
 
         assert.throws(function() {
-          immutable.merge(nonObj);
+          immutable._merge(nonObj);
         }, TypeError)
       });
     });
@@ -201,12 +201,12 @@ module.exports = function(config) {
       var toMerge  = {are: {you: {have: "no chance to survive"}}};
 
       var expectedShallow = Immutable({all: "your base", are: {you: {have: "no chance to survive"}}});
-      var actualShallow   = original.merge(toMerge);
+      var actualShallow   = original._merge(toMerge);
 
       TestUtils.assertJsonEqual(actualShallow, expectedShallow);
 
       var expectedDeep = Immutable({all: "your base", are: {belong: "to us", you: {have: "no chance to survive", make: "your time"}}});
-      var actualDeep   = original.merge(toMerge, {deep: true});
+      var actualDeep   = original._merge(toMerge, {deep: true});
 
       TestUtils.assertJsonEqual(actualDeep, expectedDeep);
     });
@@ -216,7 +216,7 @@ module.exports = function(config) {
       var toMerge = {id: 3, name: "three", valid: false, a: [1000], b: {id: 4}, x: [3, 4], sub: {y: [10, 11], z: [101, 102]}};
 
       var expected = Immutable({id: 3, name: "three", valid: false, a: [1000], b: {id: 4}, x: [3, 4], sub: {z: [101, 102], y: [10, 11]}});
-      var actual   = original.merge(toMerge, {deep: true});
+      var actual   = original._merge(toMerge, {deep: true});
 
       TestUtils.assertJsonEqual(actual, expected);
     });
@@ -229,7 +229,7 @@ module.exports = function(config) {
 
     it("merges with a custom merger when the config tells it to", function() {
       var expected = Immutable({all: "your base", are: {belong: "to us"}, you: ['have', 'no', 'chance', 'to', 'survive']});
-      var actual = Immutable({all: "your base", are: {belong: "to us"}, you: ['have', 'no']}).merge({you: ['chance', 'to', 'survive']}, {merger: arrayMerger});
+      var actual = Immutable({all: "your base", are: {belong: "to us"}, you: ['have', 'no']})._merge({you: ['chance', 'to', 'survive']}, {merger: arrayMerger});
 
       TestUtils.assertJsonEqual(actual, expected);
     });
@@ -239,7 +239,7 @@ module.exports = function(config) {
       var toMerge = {id: 3, name: "three", valid: false, a: [1000], b: {id: 4}, x: [3, 4], sub: {y: [10, 11], z: [101, 102]}};
 
       var expected = Immutable({id: 3, name: "three", valid: false, a: [1000], b: {id: 4}, x: [1, 2, 3, 4], sub: {z: [100, 101, 102], y: [10, 11]}});
-      var actual   = original.merge(toMerge, {deep: true, merger: arrayMerger});
+      var actual   = original._merge(toMerge, {deep: true, merger: arrayMerger});
 
       TestUtils.assertJsonEqual(actual, expected);
     });
@@ -247,7 +247,7 @@ module.exports = function(config) {
     it("merges with a custom merger that returns the current object the result is the same as the original", function() {
       var data = {id: 3, name: "three", valid: true, a: {id: 2}, b: [50], x: [1, 2], sub: {z: [100]}};
       var original = Immutable(data);
-      var actualWithoutMerger = original.merge(data);
+      var actualWithoutMerger = original._merge(data);
       assert.notEqual(original, actualWithoutMerger);
 
       var config = {
@@ -255,17 +255,18 @@ module.exports = function(config) {
           return current;
         }
       };
-      var actualWithMerger = original.merge(data, config);
+      var actualWithMerger = original._merge(data, config);
       assert.equal(original, actualWithMerger);
     });
 
     it("preserves prototypes across merges", function() {
       function TestClass(o) { _.extend(this, o); };
+      TestClass.prototype.test = function () {}
       var data = new TestClass({a: 1, b: 2});
       var mergeData = {b: 3, c: 4};
 
       var immutable = Immutable(data, {prototype: TestClass.prototype});
-      var result = immutable.merge(mergeData);
+      var result = immutable._merge(mergeData);
 
       TestUtils.assertJsonEqual(result, _.extend({}, data, mergeData));
       TestUtils.assertHasPrototype(result, TestClass.prototype);

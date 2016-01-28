@@ -10,7 +10,7 @@ module.exports = function(config) {
   var check     = TestUtils.check;
 
   function getPathComponent() {
-    // It's very convenient to use lodash.set, but it has funky behaviour
+    // It's very convenient to use lodash._set, but it has funky behaviour
     // with numeric keys.
     var s = JSC.string()().replace(/[^\w]/g, '_');
     return /^\d+$/.test(s) ? s + 'a' : s;
@@ -20,12 +20,12 @@ module.exports = function(config) {
     it("sets a property by name", function () {
       check(100, [TestUtils.ComplexObjectSpecifier()], function(ob) {
         var immutable = Immutable(ob);
-        var mutable = immutable.asMutable();
+        var mutable = immutable._asMutable();
         var prop = getPathComponent();
         var value = JSC.any()();
 
         TestUtils.assertJsonEqual(
-          immutable.set(prop, value),
+          immutable._set(prop, value),
           _.set(mutable, prop, value)
         );
       });
@@ -36,7 +36,7 @@ module.exports = function(config) {
     it("sets a property by path", function () {
       check(100, [TestUtils.ComplexObjectSpecifier()], function(ob) {
         var immutable = Immutable(ob);
-        var mutable = immutable.asMutable();
+        var mutable = immutable._asMutable();
         var value = JSC.any()();
 
         TestUtils.assertJsonEqual(immutable, mutable);
@@ -47,7 +47,7 @@ module.exports = function(config) {
         }
 
         TestUtils.assertJsonEqual(
-          immutable.setIn(path, value),
+          immutable._setIn(path, value),
           _.set(mutable, path, value)
         );
       });

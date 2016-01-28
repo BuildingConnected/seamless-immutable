@@ -8,10 +8,10 @@ module.exports = function(config) {
   var TestUtils = getTestUtils(Immutable);
   var check     = TestUtils.check;
 
-  describe("#asMutable", function() {
+  describe("#_asMutable", function() {
     it("returns an empty mutable oject from an empty immutable array", function() {
         var immutable = Immutable({});
-        var mutable = immutable.asMutable();
+        var mutable = immutable._asMutable();
 
         assertNotArray(mutable);
         assertCanBeMutated(mutable);
@@ -23,7 +23,7 @@ module.exports = function(config) {
     it("returns a shallow mutable copy if not provided the deep flag", function() {
       check(100, [ TestUtils.TraversableObjectSpecifier ], function(obj) {
         var immutable = Immutable(obj);
-        var mutable = immutable.asMutable();
+        var mutable = immutable._asMutable();
 
         assertNotArray(mutable);
         assertCanBeMutated(mutable);
@@ -37,7 +37,7 @@ module.exports = function(config) {
     it("returns a deep mutable copy if provided the deep flag", function() {
       check(100, [ TestUtils.TraversableObjectSpecifier ], function(obj) {
         var immutable = Immutable(obj);
-        var mutable = immutable.asMutable({ deep: true });
+        var mutable = immutable._asMutable({ deep: true });
 
         assertNotArray(mutable);
         assertCanBeMutated(mutable);
@@ -48,19 +48,19 @@ module.exports = function(config) {
       });
     });
 
-    it("does not throw an error when asMutable deep = true is called on an Immutable with a nested date", function() {
+    it("does not throw an error when _asMutable deep = true is called on an Immutable with a nested date", function() {
       check(100, [ TestUtils.TraversableObjectSpecifier ], function(obj) {
         var test = Immutable({ testDate: new Date()});
-        test.asMutable({deep: true});
+        test._asMutable({deep: true});
       });
     });
 
-    it("preserves prototypes after call to asMutable", function() {
+    it("preserves prototypes after call to _asMutable", function() {
       function TestClass(o) { _.extend(this, o); };
       var data = new TestClass({a: 1, b: 2});
 
       var immutable = Immutable(data, {prototype: TestClass.prototype});
-      var result = immutable.asMutable();
+      var result = immutable._asMutable();
 
       TestUtils.assertJsonEqual(result, data);
       TestUtils.assertHasPrototype(result, TestClass.prototype);

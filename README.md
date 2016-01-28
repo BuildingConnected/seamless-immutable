@@ -64,7 +64,7 @@ Immutable([1, 2, 3]).concat([10, 9, 8]).sort()
 // [1, 2, 3, 4, 5, 6], because a vanilla array's concat() method has
 // no knowledge of Immutable.
 
-Immutable({all: "your base", are: {belong: "to them"}}).merge({are: {belong: "to us"}})
+Immutable({all: "your base", are: {belong: "to them"}})._merge({are: {belong: "to us"}})
 // This handy new method will return the following:
 // Immutable({all: "your base", are: {belong: "to us"}})
 ```
@@ -84,12 +84,12 @@ Beyond [the usual Array fare](https://developer.mozilla.org/en-US/docs/Web/JavaS
 ### flatMap
 
 ```javascript
-Immutable(["here", "we", "go"]).flatMap(function(str) {
+Immutable(["here", "we", "go"])._flatMap(function(str) {
   return [str, str, str];
 });
 // returns Immutable(["here", "here", "here", "we", "we", "we", "go", "go", "go"])
 
-Immutable(["drop the numbers!", 3, 2, 1, 0, null, undefined]).flatMap(function(value) {
+Immutable(["drop the numbers!", 3, 2, 1, 0, null, undefined])._flatMap(function(value) {
   if (typeof value === "number") {
     return [];
   } else {
@@ -105,7 +105,7 @@ iterator function returns an Array, that Array's elements are each added to the 
 ### asObject
 
 ```javascript
-Immutable(["hey", "you"]).asObject(function(str) {
+Immutable(["hey", "you"])._asObject(function(str) {
   return [str, str.toUpperCase()];
 });
 // returns Immutable({hey: "HEY", you: "YOU"})
@@ -115,20 +115,20 @@ Effectively performs a [map](https://developer.mozilla.org/en-US/docs/Web/JavaSc
 will return an array of two elements - the first representing a key, the other
 a value. Then returns an Immutable Object constructed of those keys and values.
 
-You can also call `.asObject` without passing an iterator, in which case it will proceed assuming the Array
+You can also call `._asObject` without passing an iterator, in which case it will proceed assuming the Array
 is already organized as desired.
 
-### asMutable
+### _asMutable
 
 ```javascript
-var mutableArray = Immutable(["hello", "world"]).asMutable();
+var mutableArray = Immutable(["hello", "world"])._asMutable();
 
 mutableArray.push("!!!");
 
 mutableArray // ["hello", "world", "!!!"]
 ```
 
-Returns a mutable copy of the array. For a deeply mutable copy, in which any instances of `Immutable` contained in nested data structures within the array have been converted back to mutable data structures, call `.asMutable({deep: true})` instead.
+Returns a mutable copy of the array. For a deeply mutable copy, in which any instances of `Immutable` contained in nested data structures within the array have been converted back to mutable data structures, call `._asMutable({deep: true})` instead.
 
 ## Immutable Object
 
@@ -158,10 +158,10 @@ Beyond [the usual Object fare](https://developer.mozilla.org/en-US/docs/Web/Java
 ### merge
 
 ```javascript
-Immutable({status: "good", hypothesis: "plausible", errors: 0}).merge({status: "funky", hypothesis: "confirmed"})
+Immutable({status: "good", hypothesis: "plausible", errors: 0})._merge({status: "funky", hypothesis: "confirmed"})
 // returns Immutable({status: "funky", hypothesis: "confirmed", errors: 0})
 
-Immutable({status: "bad", errors: 37}).merge([
+Immutable({status: "bad", errors: 37})._merge([
   {status: "funky", errors: 1}, {status: "groovy", errors: 2}, {status: "sweet"}])
 // returns Immutable({status: "sweet", errors: 2})
 // because passing an Array (or just multiple arguments) is shorthand for
@@ -179,14 +179,14 @@ A second argument can be provided to perform a deep merge: `{deep: true}`.
 ### set
 
 ```javascript
-Immutable({type: "parrot", subtype: "Norwegian Blue", status: "alive"}).set("status", "dead")
+Immutable({type: "parrot", subtype: "Norwegian Blue", status: "alive"})._set("status", "dead")
 // returns Immutable({type: "parrot", subtype: "Norwegian Blue", status: "dead"})
 ```
 
 Returns an Immutable Object with a single property set to the provided value.
 Basically a more straightforward way of saying
 ```javascript
-Immutable({type: "parrot", subtype: "Norwegian Blue", status: "alive"}).merge({status: "dead"})
+Immutable({type: "parrot", subtype: "Norwegian Blue", status: "alive"})._merge({status: "dead"})
 ```
 (and more convenient with non-literal keys unless you have ES6 ```[computed_property_names]```).
 
@@ -195,24 +195,24 @@ Immutable({type: "parrot", subtype: "Norwegian Blue", status: "alive"}).merge({s
 Like [set](#set), but accepts a nested path to the property.
 
 ```javascript
-Immutable({type: {main: "parrot", sub: "Norwegian Blue"}, status: "alive"}).setIn(["type", "sub"], "Norwegian Ridgeback")
+Immutable({type: {main: "parrot", sub: "Norwegian Blue"}, status: "alive"})._setIn(["type", "sub"], "Norwegian Ridgeback")
 // returns Immutable({type: {main: "parrot", sub: "Norwegian Ridgeback"}, status: "alive"})
 ```
 
 ### without
 
 ```javascript
-Immutable({the: "forests", will: "echo", with: "laughter"}).without("with")
+Immutable({the: "forests", will: "echo", with: "laughter"})._without("with")
 // returns Immutable({the: "forests", will: "echo"})
 
-Immutable({the: "forests", will: "echo", with: "laughter"}).without(["will", "with"])
+Immutable({the: "forests", will: "echo", with: "laughter"})._without(["will", "with"])
 // returns Immutable({the: "forests"})
 
-Immutable({the: "forests", will: "echo", with: "laughter"}).without("will", "with")
+Immutable({the: "forests", will: "echo", with: "laughter"})._without("will", "with")
 // returns Immutable({the: "forests"})
 
 
-Immutable({the: "forests", will: "echo", with: "laughter"}).without((value, key) => key === "the" || value === "echo")
+Immutable({the: "forests", will: "echo", with: "laughter"})._without((value, key) => key === "the" || value === "echo")
 // returns Immutable({with: "laughter"})
 ```
 
@@ -221,17 +221,17 @@ the given predicate from the existing object.
 
 Multiple keys can be provided, either in an Array or as extra arguments.
 
-### asMutable
+### _asMutable
 
 ```javascript
-var mutableObject = Immutable({when: "the", levee: "breaks"}).asMutable();
+var mutableObject = Immutable({when: "the", levee: "breaks"})._asMutable();
 
 mutableObject.have = "no place to go";
 
 mutableObject // {when: "the", levee: "breaks", have: "no place to go"}
 ```
 
-Returns a mutable copy of the object. For a deeply mutable copy, in which any instances of `Immutable` contained in nested data structures within the object have been converted back to mutable data structures, call `.asMutable({deep: true})` instead.
+Returns a mutable copy of the object. For a deeply mutable copy, in which any instances of `Immutable` contained in nested data structures within the object have been converted back to mutable data structures, call `._asMutable({deep: true})` instead.
 
 ### Releases
 
@@ -266,7 +266,7 @@ Add support for optional prototyping.
 
 #### 2.4.2
 
-Calling .asMutable({deep: true}) on an Immutable data structure with a nested Date no longer throws an exception.
+Calling ._asMutable({deep: true}) on an Immutable data structure with a nested Date no longer throws an exception.
 
 #### 2.4.1
 
@@ -318,7 +318,7 @@ Make error message for invalid `#asObject` less fancy, resulting in a performanc
 
 #### 1.1.0
 
-Adds `#asMutable`
+Adds `#_asMutable`
 
 #### 1.0.0
 

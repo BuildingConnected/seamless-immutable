@@ -10,7 +10,7 @@ module.exports = function(config) {
     it("return empty single Object if no prototype is present", function() {
       var immutable = Immutable({a: 1, b: 2});
 
-      var obj = immutable.instantiateEmptyObject();
+      var obj = immutable._instantiateEmptyObject();
       assert.isFalse(Immutable.isImmutable(obj));
       TestUtils.assertJsonEqual(obj, {});
     });
@@ -20,7 +20,7 @@ module.exports = function(config) {
       var immutable = Immutable(new TestClass({a: 1, b: 2}),
         {prototype: TestClass.prototype});
 
-      var obj = immutable.instantiateEmptyObject();
+      var obj = immutable._instantiateEmptyObject();
       assert.isFalse(Immutable.isImmutable(obj));
       TestUtils.assertJsonEqual(obj, {});
       TestUtils.assertHasPrototype(obj, TestClass.prototype);

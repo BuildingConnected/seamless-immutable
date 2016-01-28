@@ -17,7 +17,7 @@ module.exports = function(config) {
           return [key, value];
         }));
 
-        var result = array.asObject(function(value, index) {
+        var result = array._asObject(function(value, index) {
           assert.strictEqual((typeof index), "number");
 
           // Check that the index argument we receive works as expected.
@@ -36,7 +36,7 @@ module.exports = function(config) {
           return [key, value];
         }));
 
-        var result = array.asObject();
+        var result = array._asObject();
 
         TestUtils.assertJsonEqual(result, obj);
       });
@@ -45,7 +45,7 @@ module.exports = function(config) {
     // Sanity check to make sure our QuickCheck logic isn't off the rails.
     it("passes a basic sanity check on canned input", function() {
       var expected = Immutable({all: "your base", are: {belong: "to us"}});
-      var actual   = Immutable([{key: "all", value: "your base"}, {key: "are", value: {belong: "to us"}}]).asObject(function(elem) {
+      var actual   = Immutable([{key: "all", value: "your base"}, {key: "are", value: {belong: "to us"}}])._asObject(function(elem) {
         return [elem.key, elem.value];
       });
 

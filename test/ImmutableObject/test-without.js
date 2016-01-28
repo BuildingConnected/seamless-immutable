@@ -45,9 +45,9 @@ module.exports = function(config) {
           assert.notStrictEqual(keys.length, 0, "Can't usefully check without() with no objects");
 
           // Make an object that at LEAST contains the specified keys.
-          var immutable = Immutable(keys).asObject(function(key) {
+          var immutable = Immutable(keys)._asObject(function(key) {
             return [key, JSC.any()()];
-          }).merge(TestUtils.ComplexObjectSpecifier()());
+          })._merge(TestUtils.ComplexObjectSpecifier()());
 
           callback(immutable, keys, useVarArgs);
         })
@@ -64,16 +64,16 @@ module.exports = function(config) {
       checkImmutableWithKeys(keysSpecifier, function(immutable, keys, useVarArgs) {
 
         it("returns the same result as a corresponding without(predicate)", function() {
-          var expected = immutable.without(dropKeysPredicate(keys));
+          var expected = immutable._without(dropKeysPredicate(keys));
           var actual   = useVarArgs ?
-            immutable.without.apply(immutable, keys) :
-            immutable.without(keys);
+            immutable._without.apply(immutable, keys) :
+            immutable._without(keys);
           TestUtils.assertJsonEqual(actual, expected);
         });
 
         it("drops the keys", function() {
           var expectedKeys = _.difference(_.keys(immutable), keys);
-          var result = immutable.without(keys);
+          var result = immutable._without(keys);
 
           TestUtils.assertJsonEqual(_.keys(result), expectedKeys);
         });
@@ -83,7 +83,7 @@ module.exports = function(config) {
     // Sanity check to make sure our QuickCheck logic isn't off the rails.
     it("passes a basic sanity check on canned input", function() {
       var expected = Immutable({cat: "meow", dog: "woof"});
-      var actual   = Immutable({cat: "meow", dog: "woof", fox: "???"}).without("fox");
+      var actual   = Immutable({cat: "meow", dog: "woof", fox: "???"})._without("fox");
 
       TestUtils.assertJsonEqual(actual, expected);
     });
@@ -91,7 +91,7 @@ module.exports = function(config) {
     it("is a no-op when passed nothing", function() {
       check(100, [TestUtils.ComplexObjectSpecifier()], function(obj) {
         var expected = Immutable(obj);
-        var actual   = expected.without();
+        var actual   = expected._without();
 
         TestUtils.assertJsonEqual(actual, expected);
       });
@@ -102,7 +102,7 @@ module.exports = function(config) {
       var data = new TestClass({a: 1, b: 2});
 
       var immutable = Immutable(data, {prototype: TestClass.prototype});
-      var result = immutable.without('b');
+      var result = immutable._without('b');
 
       TestUtils.assertJsonEqual(result, _.omit(data, 'b'));
       TestUtils.assertHasPrototype(result, TestClass.prototype);
@@ -125,7 +125,7 @@ module.exports = function(config) {
 
         it("drops the keys satisfying the predicate", function() {
           var expectedKeys = _.difference(_.keys(immutable), keys);
-          var result = immutable.without(dropKeysPredicate(keys));
+          var result = immutable._without(dropKeysPredicate(keys));
 
           assert.deepEqual(_.keys(result), expectedKeys);
 
@@ -136,7 +136,7 @@ module.exports = function(config) {
         });
 
         it("returns an Immutable Object", function() {
-          var result = immutable.without(dropKeysPredicate(keys));
+          var result = immutable._without(dropKeysPredicate(keys));
           assert.instanceOf(result, Object);
           TestUtils.assertIsDeeplyImmutable(result);
         });
@@ -150,7 +150,7 @@ module.exports = function(config) {
             })
             .keys()
             .value();
-          var result = immutable.without(function (value, key) {
+          var result = immutable._without(function (value, key) {
             return _.includes(valuesToDrop, value);
           });
 

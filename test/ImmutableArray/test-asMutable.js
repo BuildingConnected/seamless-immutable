@@ -8,10 +8,10 @@ module.exports = function(config) {
   var TestUtils = getTestUtils(Immutable);
   var check     = TestUtils.check;
 
-  describe("#asMutable", function() {
+  describe("#_asMutable", function() {
     it("returns an empty mutable array from an empty immutable array", function() {
         var immutable = Immutable([]);
-        var mutable = immutable.asMutable();
+        var mutable = immutable._asMutable();
 
         assertIsArray(mutable);
         assertCanBeMutated(mutable);
@@ -22,7 +22,7 @@ module.exports = function(config) {
     it("returns a shallow mutable copy if not provided the deep flag", function() {
       check(100, [ JSC.array([TestUtils.TraversableObjectSpecifier, JSC.any()]) ], function(array) {
         var immutable = Immutable(array);
-        var mutable = immutable.asMutable();
+        var mutable = immutable._asMutable();
 
         assertIsArray(mutable);
         assertCanBeMutated(mutable);
@@ -37,7 +37,7 @@ module.exports = function(config) {
     it("returns a deep mutable copy if provided the deep flag", function() {
       check(100, [ JSC.array([TestUtils.TraversableObjectSpecifier, JSC.any()]) ], function(array) {
         var immutable = Immutable(array);
-        var mutable = immutable.asMutable({ deep: true });
+        var mutable = immutable._asMutable({ deep: true });
 
         assertIsArray(mutable);
         assertCanBeMutated(mutable);
