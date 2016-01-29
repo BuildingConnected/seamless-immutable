@@ -1,5 +1,7 @@
-seamless-immutable
-==================
+seamless-immutable (BC Fork)
+============================
+
+*This fork of seamless-immutable replaces all immutable object methods with an _ namespaced version of the method. `set` becomes `_set`, `asMutable` becomes `_asMutable`, and so on. This is to enable the BC entity system to leverage `seamless-immutable` as an underlying data store and define its own `set` method on the  entity.*
 
 Immutable JS data structures which are backwards-compatible with normal Arrays and Objects.
 
@@ -81,7 +83,7 @@ Immutable([1, 2, 3])
 
 Beyond [the usual Array fare](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array#Accessor_methods), the following methods have been added.
 
-### flatMap
+### _flatMap
 
 ```javascript
 Immutable(["here", "we", "go"])._flatMap(function(str) {
@@ -102,7 +104,7 @@ Immutable(["drop the numbers!", 3, 2, 1, 0, null, undefined])._flatMap(function(
 Effectively performs a [map](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/map) over the elements in the array, except that whenever the provided
 iterator function returns an Array, that Array's elements are each added to the final result.
 
-### asObject
+### _asObject
 
 ```javascript
 Immutable(["hey", "you"])._asObject(function(str) {
@@ -155,7 +157,7 @@ Immutable(new Square(2), {prototype: Square.prototype}).area();
 
 Beyond [the usual Object fare](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object#Methods_of_Object_instances), the following methods have been added.
 
-### merge
+### _merge
 
 ```javascript
 Immutable({status: "good", hypothesis: "plausible", errors: 0})._merge({status: "funky", hypothesis: "confirmed"})
@@ -176,7 +178,7 @@ invocations will be performed using each provided object in turn.
 
 A second argument can be provided to perform a deep merge: `{deep: true}`.
 
-### set
+### _set
 
 ```javascript
 Immutable({type: "parrot", subtype: "Norwegian Blue", status: "alive"})._set("status", "dead")
@@ -190,7 +192,7 @@ Immutable({type: "parrot", subtype: "Norwegian Blue", status: "alive"})._merge({
 ```
 (and more convenient with non-literal keys unless you have ES6 ```[computed_property_names]```).
 
-### setIn
+### _setIn
 
 Like [set](#set), but accepts a nested path to the property.
 
@@ -199,7 +201,7 @@ Immutable({type: {main: "parrot", sub: "Norwegian Blue"}, status: "alive"})._set
 // returns Immutable({type: {main: "parrot", sub: "Norwegian Ridgeback"}, status: "alive"})
 ```
 
-### without
+### _without
 
 ```javascript
 Immutable({the: "forests", will: "echo", with: "laughter"})._without("with")
