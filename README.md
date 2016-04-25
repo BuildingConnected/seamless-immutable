@@ -40,6 +40,14 @@ The production (minified) build does neither of these, which significantly impro
 
 We generally recommend to use the "development" build that enforces immutability (and this is the default in Node.js). Only switch to the production build when you encounter performance problems. (See #50 for how to do that in Node or using a build tool - essentially do explicitely refer to the production build.)
 
+## Intentional Abstraction Leaks
+
+By popular demand, functions, dates, and [React](https://facebook.github.io/react/)
+components are treated as immutable even though technically they can be mutated.
+(It turns out that trying to make these immutable leads to more bad things
+than good.) If you call `Immutable()` on any of these, be forewarned: they will
+not actually be immutable!
+
 ## API Overview
 
 `Immutable()` returns a backwards-compatible immutable representation of whatever you pass it, so feel free to pass it absolutely anything that can be serialized as JSON. (As is the case with JSON, objects containing circular references are not allowed. Functions are allowed, unlike in JSON, but they will not be touched.)
@@ -146,7 +154,7 @@ To construct an Immutable Object with a custom prototype, simply specify the
 prototype in `options` (while useful for preserving prototypes, please note
 that custom mutator methods will not work as the object will be immutable):
 
-```
+```javascript
 function Square(length) { this.length = length };
 Square.prototype.area = function() { return Math.pow(this.length, 2) };
 
@@ -156,6 +164,20 @@ Immutable(new Square(2), {prototype: Square.prototype}).area();
 ```
 
 Beyond [the usual Object fare](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object#Methods_of_Object_instances), the following methods have been added.
+
+### Stack overflow protection
+
+Currently you can't construct Immutable from an object with circular references. To protect from ugly stack overflows, we provide a simple protection during development. We stop at a suspiciously deep stack level and [show an error message][deep].
+
+If your objects are deep, but not circular, you can increase this level from default `64`. For example:
+
+```javascript
+Immutable(deepObject, null, 256);
+```
+
+This check is not performed in the production build.
+
+[deep]: https://github.com/rtfeldman/seamless-immutable/wiki/Deeply-nested-object-was-detected
 
 ### _merge
 
@@ -201,6 +223,34 @@ Immutable({type: {main: "parrot", sub: "Norwegian Blue"}, status: "alive"})._set
 // returns Immutable({type: {main: "parrot", sub: "Norwegian Ridgeback"}, status: "alive"})
 ```
 
+### update
+
+Returns an Immutable Object with a single property updated using the provided updater function.
+
+```javascript
+function inc (x) { return x + 1 }
+Immutable({foo: 1}).update("foo", inc)
+// returns Immutable({foo: 2})
+```
+
+All additional arguments will be passed to the updater function.
+
+```javascript
+function add (x, y) { return x + y }
+Immutable({foo: 1}).update("foo", add, 10)
+// returns Immutable({foo: 11})
+```
+
+### updateIn
+
+Like [update](#update), but accepts a nested path to the property.
+
+```javascript
+function add (x, y) { return x + y }
+Immutable({foo: {bar: 1}}).updateIn(["foo", "bar"], add, 10)
+// returns Immutable({foo: {bar: 11}})
+```
+
 ### _without
 
 ```javascript
@@ -212,7 +262,6 @@ Immutable({the: "forests", will: "echo", with: "laughter"})._without(["will", "w
 
 Immutable({the: "forests", will: "echo", with: "laughter"})._without("will", "with")
 // returns Immutable({the: "forests"})
-
 
 Immutable({the: "forests", will: "echo", with: "laughter"})._without((value, key) => key === "the" || value === "echo")
 // returns Immutable({with: "laughter"})
@@ -236,6 +285,26 @@ mutableObject // {when: "the", levee: "breaks", have: "no place to go"}
 Returns a mutable copy of the object. For a deeply mutable copy, in which any instances of `Immutable` contained in nested data structures within the object have been converted back to mutable data structures, call `._asMutable({deep: true})` instead.
 
 ### Releases
+
+#### 6.0.1
+
+React components are now considered immutable.
+
+#### 6.0.0
+
+Add cycle detection.
+
+#### 5.2.0
+
+Add `update` and `updateIn`.
+
+#### 5.1.1
+
+`Immutable(Object.create(null))` now works as expected.
+
+#### 5.1.0
+
+Add predicate support to `without()`
 
 #### 5.0.1
 
@@ -330,7 +399,7 @@ Initial stable release
 
 Run `npm install -g grunt-cli`, `npm install` and then `grunt` to build and test it.
 
-[1]: https://secure.travis-ci.org/rtfeldman/seamless-immutable.svg
+[1]: https://travis-ci.org/rtfeldman/seamless-immutable.svg?branch=master
 [2]: https://travis-ci.org/rtfeldman/seamless-immutable
 [3]: https://badge.fury.io/js/seamless-immutable.svg
 [4]: https://badge.fury.io/js/seamless-immutable

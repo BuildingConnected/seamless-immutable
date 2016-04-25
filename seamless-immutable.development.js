@@ -1,6 +1,10 @@
 (function() {
   "use strict";
 
+  // https://github.com/facebook/react/blob/v15.0.1/src/isomorphic/classic/element/ReactElement.js#L21
+  var REACT_ELEMENT_TYPE = typeof Symbol === 'function' && Symbol.for && Symbol.for('react.element');
+  var REACT_ELEMENT_TYPE_FALLBACK = 0xeac7;
+
   function addPropertyTo(target, methodName, value) {
     Object.defineProperty(target, methodName, {
       enumerable: false,
@@ -25,7 +29,9 @@
 
   function isImmutable(target) {
     if (typeof target === "object") {
-      return target === null || target.hasOwnProperty(immutabilityTag);
+      return target === null || Boolean(
+        Object.getOwnPropertyDescriptor(target, immutabilityTag)
+      );
     } else {
       // In JavaScript, only objects are even potentially mutable.
       // strings, numbers, null, and undefined are all naturally immutable.
@@ -61,6 +67,7 @@
 
   function ImmutableError(message) {
     var err       = new Error(message);
+    // TODO: Consider `Object.setPrototypeOf(err, ImmutableError);`
     err.__proto__ = ImmutableError;
 
     return err;
@@ -148,6 +155,8 @@
     addPropertyTo(array, "_asMutable", asMutableArray);
     addPropertyTo(array, "_set", arraySet);
     addPropertyTo(array, "_setIn", arraySetIn);
+    addPropertyTo(array, "update", update);
+    addPropertyTo(array, "updateIn", updateIn);
 
     for(var i = 0, length = array.length; i < length; i++) {
       array[i] = Immutable(array[i]);
@@ -203,27 +212,26 @@
    *
    * @param {array} keysToRemove - A list of strings representing the keys to exclude in the return value. Instead of providing a single array, this method can also be called by passing multiple strings as separate arguments.
    */
-  function without(keysToRemove) {
-    // Calling ._without() with no arguments is a no-op. Don't bother cloning.
-    if (arguments.length === 0) {
+  function without(remove) {
+    // Calling .without() with no arguments is a no-op. Don't bother cloning.
+    if (typeof remove === "undefined" && arguments.length === 0) {
       return this;
     }
 
-    var remove;
-    if (typeof keysToRemove === "function") {
-      // The argument is a predicate.
-      remove = keysToRemove;
-    } else {
+    if (typeof remove !== "function") {
       // If we weren't given an array, use the arguments list.
-      var keysToRemoveArray = (keysToRemove instanceof Array) ?
-         keysToRemove : Array.prototype.slice.call(arguments);
-      remove = function(val, key) { return keysToRemoveArray.indexOf(key) >= 0; }
+      var keysToRemoveArray = (remove instanceof Array) ?
+         remove : Array.prototype.slice.call(arguments);
+
+      remove = function(val, key) {
+        return keysToRemoveArray.indexOf(key) !== -1;
+      };
     }
 
     var result = this._instantiateEmptyObject();
 
     for (var key in this) {
-      if (this.hasOwnProperty(key) && ! remove(this[key], key)) {
+      if (this.hasOwnProperty(key) && remove(this[key], key) === false) {
         result[key] = this[key];
       }
     }
@@ -278,13 +286,18 @@
   }
 
   function asDeepMutable(obj) {
-    if(!obj || !obj.hasOwnProperty(immutabilityTag) || obj instanceof Date) { return obj; }
-    return obj._asMutable({deep: true});
+    if (
+      (!obj) ||
+      (typeof obj !== 'object') ||
+      (!Object.getOwnPropertyDescriptor(obj, immutabilityTag)) ||
+      (obj instanceof Date)
+    ) { return obj; }
+    return obj.asMutable({deep: true});
   }
 
   function quickCopy(src, dest) {
     for (var key in src) {
-      if (src.hasOwnProperty(key)) {
+      if (Object.getOwnPropertyDescriptor(src, key)) {
         dest[key] = src[key];
       }
     }
@@ -360,7 +373,7 @@
     if (!receivedArray) {
       // The most common use case: just merge one object into the existing one.
       for (key in other) {
-        if (other.hasOwnProperty(key)) {
+        if (Object.getOwnPropertyDescriptor(other, key)) {
           addToResult(this, other, key);
         }
       }
@@ -423,6 +436,28 @@
     return makeImmutableObject(mutable, this);
   }
 
+  function update(property, updater) {
+    var restArgs = Array.prototype.slice.call(arguments, 2);
+    var initialVal = this[property];
+    return this.set(property, updater.apply(initialVal, [initialVal].concat(restArgs)));
+  }
+
+  function getInPath(obj, path) {
+    /*jshint eqnull:true */
+    for (var i = 0, l = path.length; obj != null && i < l; i++) {
+      obj = obj[path[i]];
+    }
+
+    return (i && i == l) ? obj : undefined;
+  }
+
+  function updateIn(path, updater) {
+    var restArgs = Array.prototype.slice.call(arguments, 2);
+    var initialVal = getInPath(this, path);
+
+    return this.setIn(path, updater.apply(initialVal, [initialVal].concat(restArgs)));
+  }
+
   function asMutableObject(opts) {
     var result = this._instantiateEmptyObject(), key;
 
@@ -460,12 +495,22 @@
     addPropertyTo(obj, "_instantiateEmptyObject", instantiateEmptyObject);
     addPropertyTo(obj, "_set", objectSet);
     addPropertyTo(obj, "_setIn", objectSetIn);
+    addPropertyTo(obj, "update", update);
+    addPropertyTo(obj, "updateIn", updateIn);
 
     return makeImmutable(obj, mutatingObjectMethods);
   }
 
-  function Immutable(obj, options) {
-    if (isImmutable(obj)) {
+  // Returns true if object is a valid react element
+  // https://github.com/facebook/react/blob/v15.0.1/src/isomorphic/classic/element/ReactElement.js#L326
+  function isReactElement(obj) {
+    return typeof obj === 'object' &&
+           obj !== null &&
+           (obj.$$typeof === REACT_ELEMENT_TYPE_FALLBACK || obj.$$typeof === REACT_ELEMENT_TYPE);
+  }
+
+  function Immutable(obj, options, stackRemaining) {
+    if (isImmutable(obj) || isReactElement(obj)) {
       return obj;
     } else if (obj instanceof Array) {
       return makeImmutableArray(obj.slice());
@@ -479,9 +524,22 @@
           instantiatePlainObject : (function() { return Object.create(prototype); });
       var clone = instantiateEmptyObject();
 
+      if ("development" !== "production") {
+        /*jshint eqnull:true */
+        if (stackRemaining == null) {
+          stackRemaining = 64;
+        }
+        if (stackRemaining <= 0) {
+          throw new ImmutableError("Attempt to construct Immutable from a deeply nested object was detected." +
+            " Have you tried to wrap an object with circular references (e.g. React element)?" +
+            " See https://github.com/rtfeldman/seamless-immutable/wiki/Deeply-nested-object-was-detected for details.");
+        }
+        stackRemaining -= 1;
+      }
+
       for (var key in obj) {
-        if (obj.hasOwnProperty(key)) {
-          clone[key] = Immutable(obj[key]);
+        if (Object.getOwnPropertyDescriptor(obj, key)) {
+          clone[key] = Immutable(obj[key], undefined, stackRemaining);
         }
       }
 

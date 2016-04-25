@@ -1,6 +1,7 @@
 var JSC          = require("jscheck");
 var assert       = require("chai").assert;
 var _            = require("lodash");
+var React        = require("react");
 var devBuild     = require("../seamless-immutable.development.js");
 var prodBuild    = require("../seamless-immutable.production.min.js");
 var getTestUtils = require("./TestUtils.js");
@@ -14,6 +15,15 @@ var getTestUtils = require("./TestUtils.js");
 
   describe(config.name, function () {
     describe("Immutable", function () {
+      it("makes an Immutable for Object.create(null)", function () {
+        var mutable = Object.create(null);
+        var immutable = Immutable(mutable);
+
+        assert.typeOf(immutable, "object");
+        assert.isTrue(Immutable.isImmutable(immutable));
+        assert.isFalse(Immutable.isImmutable(mutable));
+      });
+
 
       it("makes an Immutable Array when passed a mutable array", function () {
         TestUtils.check(100, [JSC.array()], function (mutable) {
@@ -88,6 +98,74 @@ var getTestUtils = require("./TestUtils.js");
             assert.strictEqual(Immutable(value, {prototype: Object.prototype}), value);
           });
         });
+      });
+
+      it("doesn't modify React classes", function() {
+        var reactClass = React.createClass({
+          render: function() {}
+        });
+        var factory = React.createFactory(reactClass);
+
+        var component = factory();
+        var immutableComponent = Immutable(component);
+
+        assert.typeOf(immutableComponent, 'object');
+        assert.isTrue(React.isValidElement(immutableComponent), 'Immutable component was not a valid react element');
+        assert.isFalse(Immutable.isImmutable(immutableComponent), 'React element should not be immutable');
+        TestUtils.assertJsonEqual(immutableComponent, component);
+      });
+
+      it("doesn't modify React elements", function() {
+        var reactElement = React.createElement('div');
+        var immutableElement = Immutable(reactElement);
+
+        assert.typeOf(immutableElement, 'object');
+        assert.isTrue(React.isValidElement(immutableElement), 'Immutable element was not a valid react element');
+        assert.isFalse(Immutable.isImmutable(immutableElement), 'React element should not be immutable');
+        TestUtils.assertJsonEqual(immutableElement, reactElement);
+      });
+
+      it("detects cycles", function() {
+        var obj = {};
+        obj.prop = obj;
+        var expectedError;
+
+        if (config.id === 'prod') {
+          if (typeof navigator === "undefined") {
+            // Node.js
+            expectedError = RangeError;
+          } else if (navigator.userAgent.indexOf("MSIE") !== -1) {
+            // IE9-10
+            expectedError = /Out of stack space/;
+          } else if (navigator.userAgent.indexOf("Trident") !== -1) {
+            // IE11
+            expectedError = /Out of stack space/;
+          } else if (navigator.userAgent.indexOf("Firefox") !== -1) {
+            // Firefox
+            expectedError = InternalError;
+          } else {
+            // Chrome/Safari/Opera
+            expectedError = RangeError;
+          }
+        } else {
+          expectedError = /deeply nested/;
+        }
+
+        assert.throws(function() { Immutable(obj); }, expectedError);
+      });
+
+      it("can configure stackRemaining", function() {
+        var mutable = {bottom: true};
+        _.range(65).forEach(function() {
+          mutable = {prop: mutable};
+        });
+
+        if (config.id === 'prod') {
+          TestUtils.assertJsonEqual(mutable, Immutable(mutable));
+        } else {
+          assert.throws(function() { Immutable(mutable); }, /deeply nested/);
+          TestUtils.assertJsonEqual(mutable, Immutable(mutable, null, 66));
+        }
       });
     });
   });
