@@ -259,7 +259,7 @@ module.exports = function(config) {
       assert.equal(original, actualWithMerger);
     });
 
-    it.only("preserves prototypes across merges", function() {
+    it("preserves prototypes across merges", function() {
       function TestClass(o) { _.extend(this, o); };
       TestClass.prototype.test = function () {}
       var data = new TestClass({a: 1, b: 2});
@@ -267,8 +267,9 @@ module.exports = function(config) {
 
       var immutable = Immutable(data, {prototype: TestClass.prototype});
       var result = immutable._merge(mergeData);
+      var assignResult = _.assign({}, data, mergeData)
 
-      TestUtils.assertJsonEqual(result, _.extend({}, data, mergeData));
+      TestUtils.assertJsonEqual(result, assignResult);
       TestUtils.assertHasPrototype(result, TestClass.prototype);
     });
 
