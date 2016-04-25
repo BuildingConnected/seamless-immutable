@@ -259,7 +259,7 @@ module.exports = function(config) {
       assert.equal(original, actualWithMerger);
     });
 
-    it("preserves prototypes across merges", function() {
+    it.only("preserves prototypes across merges", function() {
       function TestClass(o) { _.extend(this, o); };
       TestClass.prototype.test = function () {}
       var data = new TestClass({a: 1, b: 2});

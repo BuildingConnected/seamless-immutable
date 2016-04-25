@@ -24,10 +24,10 @@ module.exports = function(config) {
     it("updates an array element using updater function", function () {
       check(100, [ JSC.array([TestUtils.TraversableObjectSpecifier, JSC.any()]) ], function(array) {
         var immutable = Immutable(array);
-        var mutable = immutable.asMutable();
+        var mutable = immutable._asMutable();
         var index = JSC.integer(0, array.length);
 
-        immutable = immutable.update(index, dummyUpdater);
+        immutable = immutable._update(index, dummyUpdater);
         mutable[index] = dummyUpdater(mutable[index]);
 
         TestUtils.assertJsonEqual(immutable, mutable);
@@ -49,15 +49,15 @@ module.exports = function(config) {
           return '[\n\t>'+_.map(arr, util.inspect).join('\n\t>')+'\n]';
         }
 
-        var mutable = immutable.asMutable();
+        var mutable = immutable._asMutable();
         TestUtils.assertJsonEqual(immutable, mutable);
         if (Immutable.isImmutable(mutable[idx])) {
-          mutable[idx] = mutable[idx].asMutable();
+          mutable[idx] = mutable[idx]._asMutable();
         }
         mutable[idx][key] = dummyUpdater(mutable[idx][key]);
 
         TestUtils.assertJsonEqual(
-          immutable.updateIn([idx, key], dummyUpdater),
+          immutable._updateIn([idx, key], dummyUpdater),
           mutable
         );
       });

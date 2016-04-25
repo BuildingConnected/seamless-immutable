@@ -28,11 +28,11 @@ module.exports = function(config) {
     it("updates a property using updater function", function () {
       check(100, [TestUtils.TraversableObjectSpecifier], function(ob) {
         var immutable = Immutable(ob);
-        var mutable = immutable.asMutable({deep: true});
+        var mutable = immutable._asMutable({deep: true});
         var prop = 'complex';
 
         TestUtils.assertJsonEqual(
-          immutable.update(prop, dummyUpdater),
+          immutable._update(prop, dummyUpdater),
           _.set(mutable, prop, dummyUpdater(_.get(mutable, prop)))
         );
       });
@@ -41,11 +41,11 @@ module.exports = function(config) {
     it("allows passing additional parameters to updater function", function () {
       check(100, [TestUtils.TraversableObjectSpecifier], function(ob) {
         var immutable = Immutable(ob);
-        var mutable = immutable.asMutable({deep: true});
+        var mutable = immutable._asMutable({deep: true});
         var prop = 'complex';
 
         TestUtils.assertJsonEqual(
-          immutable.update(prop, dummyUpdater, "agr1", 42),
+          immutable._update(prop, dummyUpdater, "agr1", 42),
           _.set(mutable, prop, dummyUpdater(_.get(mutable, prop), "agr1", 42))
         );
       });
@@ -56,14 +56,14 @@ module.exports = function(config) {
     it("updates a property in path using updater function", function () {
       check(100, [TestUtils.TraversableObjectSpecifier], function(ob) {
         var immutable = Immutable(ob);
-        var mutable = immutable.asMutable({deep: true});
+        var mutable = immutable._asMutable({deep: true});
 
         TestUtils.assertJsonEqual(immutable, mutable);
 
         var path = ['deep', 'complex'];
 
         TestUtils.assertJsonEqual(
-          immutable.updateIn(path, dummyUpdater),
+          immutable._updateIn(path, dummyUpdater),
           _.set(mutable, path, dummyUpdater(_.get(mutable, path)))
         );
       });
@@ -72,14 +72,14 @@ module.exports = function(config) {
     it("allows passing additional parameters to updater function", function () {
       check(100, [TestUtils.TraversableObjectSpecifier], function(ob) {
         var immutable = Immutable(ob);
-        var mutable = immutable.asMutable({deep: true});
+        var mutable = immutable._asMutable({deep: true});
 
         TestUtils.assertJsonEqual(immutable, mutable);
 
         var path = ['deep', 'complex'];
 
         TestUtils.assertJsonEqual(
-          immutable.updateIn(path, dummyUpdater, "agr1", 42),
+          immutable._updateIn(path, dummyUpdater, "agr1", 42),
           _.set(mutable, path, dummyUpdater(_.get(mutable, path), "agr1", 42))
         );
       });

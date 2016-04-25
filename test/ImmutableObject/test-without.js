@@ -146,7 +146,7 @@ module.exports = function(config) {
             return _.includes(keys, key);
           });
 
-          var actual = immutable.without(function (value, key) {
+          var actual = immutable._without(function (value, key) {
             return _.includes(keys, key);
           });
 

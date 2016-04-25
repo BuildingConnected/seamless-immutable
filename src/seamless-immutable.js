@@ -155,8 +155,8 @@
     addPropertyTo(array, "_asMutable", asMutableArray);
     addPropertyTo(array, "_set", arraySet);
     addPropertyTo(array, "_setIn", arraySetIn);
-    addPropertyTo(array, "update", update);
-    addPropertyTo(array, "updateIn", updateIn);
+    addPropertyTo(array, "_update", update);
+    addPropertyTo(array, "_updateIn", updateIn);
 
     for(var i = 0, length = array.length; i < length; i++) {
       array[i] = Immutable(array[i]);
@@ -213,7 +213,7 @@
    * @param {array} keysToRemove - A list of strings representing the keys to exclude in the return value. Instead of providing a single array, this method can also be called by passing multiple strings as separate arguments.
    */
   function without(remove) {
-    // Calling .without() with no arguments is a no-op. Don't bother cloning.
+    // Calling ._without() with no arguments is a no-op. Don't bother cloning.
     if (typeof remove === "undefined" && arguments.length === 0) {
       return this;
     }
@@ -292,7 +292,7 @@
       (!Object.getOwnPropertyDescriptor(obj, immutabilityTag)) ||
       (obj instanceof Date)
     ) { return obj; }
-    return obj.asMutable({deep: true});
+    return obj._asMutable({deep: true});
   }
 
   function quickCopy(src, dest) {
@@ -439,7 +439,7 @@
   function update(property, updater) {
     var restArgs = Array.prototype.slice.call(arguments, 2);
     var initialVal = this[property];
-    return this.set(property, updater.apply(initialVal, [initialVal].concat(restArgs)));
+    return this._set(property, updater.apply(initialVal, [initialVal].concat(restArgs)));
   }
 
   function getInPath(obj, path) {
@@ -455,7 +455,7 @@
     var restArgs = Array.prototype.slice.call(arguments, 2);
     var initialVal = getInPath(this, path);
 
-    return this.setIn(path, updater.apply(initialVal, [initialVal].concat(restArgs)));
+    return this._setIn(path, updater.apply(initialVal, [initialVal].concat(restArgs)));
   }
 
   function asMutableObject(opts) {
@@ -495,8 +495,8 @@
     addPropertyTo(obj, "_instantiateEmptyObject", instantiateEmptyObject);
     addPropertyTo(obj, "_set", objectSet);
     addPropertyTo(obj, "_setIn", objectSetIn);
-    addPropertyTo(obj, "update", update);
-    addPropertyTo(obj, "updateIn", updateIn);
+    addPropertyTo(obj, "_update", update);
+    addPropertyTo(obj, "_updateIn", updateIn);
 
     return makeImmutable(obj, mutatingObjectMethods);
   }
